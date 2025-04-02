@@ -18,6 +18,9 @@ class App:
                                                                     self.register_new_user, fg='black')
         self.register_new_user_button_main_window.place(x=750, y=400)
         
+        self.logout_button_main_window = components.get_button(self.main_window,'Logout' , 'red',self.logout )
+        self.logout_button_main_window.place(x=750, y=300)
+        
         self.webcam_label = components.get_img_label(self.main_window)
         self.webcam_label.place(x=10, y=0, width=700, height=500)
         

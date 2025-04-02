@@ -6,12 +6,12 @@ from tkinter import messagebox
 import face_recognition
 
 
-def get_button(window, text, color, command, fg='white'):
+def get_button(window, text, color, command, fg='black'):
     button = tk.Button(
                         window,
                         text=text,
-                        activebackground="black",
-                        activeforeground="white",
+                        activebackground="white",
+                        activeforeground="black",
                         fg=fg,
                         bg=color,
                         command=command,
