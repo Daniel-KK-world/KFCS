@@ -55,6 +55,7 @@ class App:
         
         self.add_img_to_label( self.capture_label)
         
+        #does not work for now.  
         def add_img_to_label(self, label):
             imgtk = ImageTk.PhotoImage(image=self.most_recent_capture_pil)
             label.imgtk = imgtk
