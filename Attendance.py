@@ -10,19 +10,21 @@ class App:
     def __init__(self):
         self.main_window = tk.Tk()
         self.main_window.geometry("1200x520+350+100")
+        print(type(self.main_window))
+        self.main_window.configure(background='gray20')
         
-        self.login_button_main_window = components.get_button(self.main_window, 'login', 'blue', self.login)
+        self.login_button_main_window = components.get_button(self.main_window, 'Login', 'dodgerblue', self.login)
         self.login_button_main_window.place(x=750, y=200)
         
-        self.register_new_user_button_main_window = components.get_button(self.main_window, 'register new user', 'gray',
+        self.register_new_user_button_main_window = components.get_button(self.main_window, 'Register new user', 'slategray',
                                                                     self.register_new_user, fg='black')
         self.register_new_user_button_main_window.place(x=750, y=400)
         
-        self.logout_button_main_window = components.get_button(self.main_window,'Logout' , 'red',self.logout )
+        self.logout_button_main_window = components.get_button(self.main_window,'Logout' , 'firebrick',self.logout )
         self.logout_button_main_window.place(x=750, y=300)
         
         self.webcam_label = components.get_img_label(self.main_window)
-        self.webcam_label.place(x=10, y=0, width=700, height=500)
+        self.webcam_label.place(x=10, y=10, width=600, height=500)
         
         self.add_webcam(self.webcam_label)
         
@@ -76,6 +78,7 @@ class App:
     def start(self):
         self.main_window.title('Kantanka Financial Co-operative Society (KFCS) Attendance System')
         self.main_window.mainloop()
+        
         
     def add_webcam(self, label):
     #Initialize and start webcam feed in a Tkinter label
