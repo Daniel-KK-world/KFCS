@@ -11,7 +11,7 @@ class App:
         self.main_window = tk.Tk()
         self.main_window.geometry("1200x520+350+100")
         print(type(self.main_window))
-        self.main_window.configure(background='gray20')
+        self.main_window.configure(background='#151515')
         
         self.login_button_main_window = components.get_button(self.main_window, 'Login', 'dodgerblue', self.login)
         self.login_button_main_window.place(x=750, y=200)

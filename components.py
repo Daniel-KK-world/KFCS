@@ -24,58 +24,8 @@ def get_button(window, text, color, command, fg='white'):
         relief='flat'                    # Flat modern style
     )
 
-    # Add hover effects (dynamic color change)
-    def on_enter(e):
-        e.widget.config(bg=darken_color(color))  # Darken color by 20% on hover
-
-    def on_leave(e):
-        e.widget.config(bg=color)  # Restore original color
-
-    button.bind("<Enter>", on_enter)
-    button.bind("<Leave>", on_leave)
-
     return button
 
-def darken_color(self, color, amount=20):
-    """
-    Darkens a color by specified percentage (0-100)
-    Works with:
-    - Hex strings ('#RRGGBB')
-    - Named colors ('dodgerblue')
-    - RGB tuples ((255, 0, 0))
-    """
-    try:
-        # Convert named colors to hex
-        if isinstance(color, str) and not color.startswith('#') and hasattr(tk, 'color_map'):
-            if color.lower() in tk.color_map:
-                color = tk.color_map[color.lower()]
-            else:
-                return color  # Return original if not a known color name
-        
-        # Handle hex colors
-        if isinstance(color, str) and color.startswith('#'):
-            if len(color) == 7:  # #RRGGBB format
-                r, g, b = (int(color[i:i+2], 16) for i in (1, 3, 5))
-            elif len(color) == 4:  # #RGB format
-                r, g, b = (int(color[i]*2, 16) for i in (1, 2, 3))
-            else:
-                return color
-            
-            # Darken each channel
-            r = max(0, int(r * (100 - amount) / 100))
-            g = max(0, int(g * (100 - amount) / 100))
-            b = max(0, int(b * (100 - amount) / 100))
-            
-            return f'#{int(r):02x}{int(g):02x}{int(b):02x}'
-        
-        # Handle RGB tuples
-        elif isinstance(color, (tuple, list)) and len(color) == 3:
-            return tuple(max(0, int(channel * (100 - amount) / 100)) for channel in color)
-        
-        return color  # Fallback for invalid formats
-    
-    except Exception:
-        return color  # Return original color if any error occurs
 
 
 def get_img_label(window):
