@@ -55,11 +55,24 @@ class App:
             components.msg_box('Ooops...', 'Unknown user. Please register new user or try again.')
         else:
             components.msg_box('Welcome back !', 'Welcome, {}.'.format(name))
+            
+            # Get current timestamp in a nice format
+            timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            
+            # Create a more organized log entry
+            log_entry = f"""
+            {'-' * 40}
+            User: {name}
+            Time: {timestamp}
+            Action: Check-in
+            {'-' * 40}
+            """
+            
             with open(self.log_path, 'a') as f:
-                f.write('{},{},in\n'.format(name, datetime.datetime.now()))
-                # No need for f.close() - the 'with' statement handles this automatically
+                f.write(log_entry + '\n')
 
         os.remove(unknown_image_path)
+        
     def logout(self):
         pass 
     
@@ -129,7 +142,6 @@ class App:
         
     def add_webcam(self, label):
     #Initialize and start webcam feed in a Tkinter label
-    # Initialize VideoCapture if not already done
         if not hasattr(self, 'cap') or not self.cap.isOpened():
             self.cap = cv2.VideoCapture(0)  # 0 = default camera
         if not self.cap.isOpened():
@@ -137,7 +149,7 @@ class App:
             return False
     
         self._label = label  # Tkinter label where the webcam feed will be displayed
-        self.process_webcam()  # Start the webcam processing loop  
+        self.process_webcam()  
         return True
         
     def process_webcam(self):
