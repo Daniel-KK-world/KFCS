@@ -76,6 +76,11 @@ class App:
     def accept_register_new_user(self):
         name = self.entry_text_register_new_user.get(1.0, "end-1c")
         
+        cv2.imwrite(os.path.join(self.db_dir, '{}.jpg'.format(name)), self.register_new_user_capture) 
+        
+        components.msg_box(name, "You have been successfully registered")
+        
+        self.register_new_user_window.destroy()
     
     def try_again_register_new_user(self):
         self.register_new_user_window.destroy()
