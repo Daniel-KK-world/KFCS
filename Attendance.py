@@ -6,6 +6,7 @@ import datetime
 
 import cv2
 from PIL import Image, ImageTk
+import subprocess
 import face_recognition
 
 import components 
@@ -37,8 +38,23 @@ class App:
             
         self.log_path = './log.txt'
     def login(self):
+        unknown_image_path = './.tmp.jpg'
         
-        output = subprocess.checkoutput(['face_recognition', self.db_dir, unknown_image_path])
+        cv2.imwrite(unknown_image_path, self.most_recent_capture_arr) 
+
+        
+        output = subprocess.check_output(['face_recognition', self.db_dir, unknown_image_path])
+        name = output.split(',')[1][:-3]
+        
+        if name in ['unknown_person', 'no_persons_found']:
+            components.msg_box('Ooops...', 'Unknown user. Please register new user or try again.')
+        else:
+                components.msg_box('Welcome back !', 'Welcome, {}.'.format(name))
+                with open(self.log_path, 'a') as f:
+                    f.write('{},{},in\n'.format(name, datetime.datetime.now()))
+                    f.close()
+
+        os.remove(unknown_image_path)
     
     def logout(self):
         pass 
