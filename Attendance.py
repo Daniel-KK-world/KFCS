@@ -16,16 +16,20 @@ class App:
     def __init__(self):
         self.main_window = tk.Tk()
         self.main_window.geometry("1200x520+350+100")
+        self.main_window.configure(background='#1a001a')
         
-        self.login_button_main_window = components.get_button(self.main_window, 'Login', 'dodgerblue', self.login)
-        self.login_button_main_window.place(x=750, y=200)
+        self.login_button_main_window = components.get_button(self.main_window, 'Login', '#a300a3', self.login)
+        self.login_button_main_window.place(x=750, y=300)
         
         self.register_new_user_button_main_window = components.get_button(self.main_window, 'Register new user', 'slategray',
-                                                                    self.register_new_user, fg='black')
+                                                                    self.register_new_user, fg='white')
         self.register_new_user_button_main_window.place(x=750, y=400)
         
-        self.logout_button_main_window = components.get_button(self.main_window,'Logout' , 'firebrick',self.logout )
-        self.logout_button_main_window.place(x=750, y=300)
+        #self.logout_button_main_window = components.get_button(self.main_window,'Logout' , 'firebrick',self.logout )
+        #self.logout_button_main_window.place(x=750, y=300)
+        
+        self.text_label_register_new_user = components.get_text_label(self.main_window,'KFCS, \nLogin or Register: ')
+        self.text_label_register_new_user.place(x=750, y=150)
         
         self.webcam_label = components.get_img_label(self.main_window)
         self.webcam_label.place(x=10, y=10, width=600, height=500)
@@ -42,42 +46,41 @@ class App:
         
         cv2.imwrite(unknown_image_path, self.most_recent_capture_arr) 
 
-        
+        # Corrected subprocess call
         output = subprocess.check_output(['face_recognition', self.db_dir, unknown_image_path])
-        name = output.split(',')[1][:-3]
+        name = output.decode('utf-8').split(',')[1].strip()  # Decode bytes to string and clean up
         
         if name in ['unknown_person', 'no_persons_found']:
             components.msg_box('Ooops...', 'Unknown user. Please register new user or try again.')
         else:
-                components.msg_box('Welcome back !', 'Welcome, {}.'.format(name))
-                with open(self.log_path, 'a') as f:
-                    f.write('{},{},in\n'.format(name, datetime.datetime.now()))
-                    f.close()
+            components.msg_box('Welcome back !', 'Welcome, {}.'.format(name))
+            with open(self.log_path, 'a') as f:
+                f.write('{},{},in\n'.format(name, datetime.datetime.now()))
+                # No need for f.close() - the 'with' statement handles this automatically
 
         os.remove(unknown_image_path)
-    
     def logout(self):
         pass 
     
     def register_new_user(self):
         self.register_new_user_window = tk.Toplevel(self.main_window)
         self.register_new_user_window.geometry("1200x520+370+120")
-        #self.main_window.configure(background='#151515')
+        self.register_new_user_window.configure(background='#1a001a')
         
         self.accept_button_register_new_user_window = components.get_button(self.register_new_user_window,
                                                                             'Accept',
-                                                                            'blue',
+                                                                            '#a300a3',
                                                                             self.accept_register_new_user)
         self.accept_button_register_new_user_window.place(x=750, y=300)
         
         self.try_again_button_register_new_user_window = components.get_button(self.register_new_user_window,
                                                                                'Try Again',
-                                                                               'red',
+                                                                               '#393900',
                                                                                self.try_again_register_new_user)
         self.try_again_button_register_new_user_window.place(x=750, y=400)
         
         self.capture_label = components.get_img_label(self.register_new_user_window)
-        self.capture_label.place(x=10, y=0, width=700, height=500)
+        self.capture_label.place(x=10, y=10, width=700, height=500)
         
         self.add_img_to_label(self.capture_label)
         
@@ -85,7 +88,7 @@ class App:
         self.entry_text_register_new_user.place(x=750, y=150)
         
         self.text_label_register_new_user = components.get_text_label(self.register_new_user_window,'Please, \ninput username: ')
-        self.text_label_register_new_user.place(x=750, y=70)
+        self.text_label_register_new_user.place(x=750, y=45)
         
         #does not work for now.  
     def add_img_to_label(self, label):

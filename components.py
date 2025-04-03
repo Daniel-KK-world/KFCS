@@ -7,21 +7,21 @@ import face_recognition
 
 
 def get_button(window, text, color, command, fg='white'):
-    # Modern flat button with hover effects
+    # Modern flat button base with hover effects
     button = tk.Button(
         window,
         text=text,
         bg=color,
         fg=fg,
-        activebackground=color,  # Slightly darker version of 'color' would be better
+        activebackground='black',
         activeforeground=fg,
         command=command,
         height=2,
         width=20,
-        font=('Helvetica', 20, 'bold'),  # More standard than 'Helvetica bold'
-        borderwidth=0,                   # Remove default 3D border
-        highlightthickness=0,            # Remove focus ring
-        relief='flat'                    # Flat modern style
+        font=('Helvetica', 20, 'bold'), 
+        borderwidth=0,                  
+        highlightthickness=0,     
+        relief='flat'                   
     )
 
     return button
@@ -34,18 +34,47 @@ def get_img_label(window):
     return label
 
 
-def get_text_label(window, text):
-    label = tk.Label(window, text=text)
-    label.config(font=("sans-serif", 21), justify="left")
+def get_text_label(window, text, bg_color="#390039", text_color="white"):
+    label = tk.Label(
+        window,
+        text=text,
+        font=("Helvetica", 21, "bold"),  
+        fg=text_color,     
+        bg=bg_color,       
+        justify="left",
+        padx=20,                      
+        pady=10,                        
+        relief="flat",                   
+        bd=0                            
+    )
     return label
 
-
-def get_entry_text(window):
+'''def get_entry_text(window):
     inputtxt = tk.Text(window,
                        height=2,
-                       width=15, font=("Arial", 32))
-    return inputtxt
+                       width=15, font=("Arial", 32)
+                       bg='#868600')
+    return inputtxt '''
 
+def get_entry_text(window):
+    inputtxt = tk.Text(
+        window,
+        height=2,
+        width=15,
+        font=("Arial", 32),
+        background= '#868600',  # Background color (your dark yellow)
+        fg='white',   # Text color
+        insertbackground='white',  # Cursor color
+        selectbackground='#555555',  # Selection highlight bg
+        selectforeground='white',    # Selection text color
+        relief='flat',  # Remove border relief
+        highlightthickness=1,  # Border thickness
+        highlightcolor='#868600',  # Border color (matches bg)
+        highlightbackground='#868600',  # Border color when not focused
+        padx=10,  # Inner padding
+        pady=5
+    )
+    return inputtxt
 
 def msg_box(title, description):
     messagebox.showinfo(title, description)
