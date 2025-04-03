@@ -10,8 +10,6 @@ class App:
     def __init__(self):
         self.main_window = tk.Tk()
         self.main_window.geometry("1200x520+350+100")
-        print(type(self.main_window))
-        self.main_window.configure(background='#151515')
         
         self.login_button_main_window = components.get_button(self.main_window, 'Login', 'dodgerblue', self.login)
         self.login_button_main_window.place(x=750, y=200)
@@ -42,6 +40,7 @@ class App:
     def register_new_user(self):
         self.register_new_user_window = tk.Toplevel(self.main_window)
         self.register_new_user_window.geometry("1200x520+370+120")
+        #self.main_window.configure(background='#151515')
         
         self.accept_button_register_new_user_window = components.get_button(self.register_new_user_window,
                                                                             'Accept',
@@ -55,13 +54,19 @@ class App:
                                                                                self.try_again_register_new_user)
         self.try_again_button_register_new_user_window.place(x=750, y=400)
         
-        self.capture_label= components.get_img_label(self.register_new_user_window)
-        self.capture_label.place(x=10, y=0,width=700, height=500)
+        self.capture_label = components.get_img_label(self.register_new_user_window)
+        self.capture_label.place(x=10, y=0, width=700, height=500)
         
-        self.add_img_to_label( self.capture_label)
+        self.add_img_to_label(self.capture_label)
+        
+        self.entry_text_register_new_user = components.get_entry_text(self.register_new_user_window)
+        self.entry_text_register_new_user.place(x=750, y=150)
+        
+        self.text_label_register_new_user = components.get_text_label(self.register_new_user_window,'Please, \ninput username: ')
+        self.text_label_register_new_user.place(x=750, y=70)
         
         #does not work for now.  
-        def add_img_to_label(self, label):
+    def add_img_to_label(self, label):
             imgtk = ImageTk.PhotoImage(image=self.most_recent_capture_pil)
             label.imgtk = imgtk
             label.configure(image=imgtk)
@@ -69,11 +74,11 @@ class App:
             self.register_new_user_capture = self.most_recent_capture_arr.copy()
         
     def accept_register_new_user(self):
-        pass
+        name = self.entry_text_register_new_user.get(1.0, "end-1c")
+        
     
     def try_again_register_new_user(self):
-        pass
-
+        self.register_new_user_window.destroy()
     
     def start(self):
         self.main_window.title('Kantanka Financial Co-operative Society (KFCS) Attendance System')

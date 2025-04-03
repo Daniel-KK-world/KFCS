@@ -8,7 +8,7 @@ class App:
     def __init__(self):
         self.main_window = tk.Tk()
         self.main_window.geometry("1200x520+350+100")
-        self.main_window.configure(bg='gray20')  # Fixed: Removed '#' prefix
+        self.main_window.configure(bg='gray20') 
         
         # Webcam setup
         self.webcam_label = components.get_img_label(self.main_window)
