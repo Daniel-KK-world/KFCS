@@ -68,18 +68,6 @@ class App:
         self.register_new_user_window.geometry("1200x520+370+120")
         self.register_new_user_window.configure(background='#1a001a')
         
-        try:
-            # For Windows (.ico)
-            self.main_window.iconbitmap("communityIcon_kbz7e49k7obb1.png")  
-            
-            # For Linux/macOS (or if above fails)
-            icon = tk.PhotoImage(file="company_logo/KFCS.ico")
-            self.main_window.tk.call('wm', 'iconphoto', self.main_window._w, icon)
-        except:
-            print("Icon not found - using default")
-            
-    
-        
         self.accept_button_register_new_user_window = components.get_button(self.register_new_user_window,
                                                                             'Accept',
                                                                             '#a300a3',
