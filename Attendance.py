@@ -1,7 +1,12 @@
 import tkinter as tk
-import os
+import os.path
+
+import pickle
+import datetime 
+
 import cv2
 from PIL import Image, ImageTk
+import face_recognition
 
 import components 
 
@@ -32,7 +37,8 @@ class App:
             
         self.log_path = './log.txt'
     def login(self):
-        pass
+        
+        output = subprocess.checkoutput(['face_recognition', self.db_dir, unknown_image_path])
     
     def logout(self):
         pass 
