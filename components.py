@@ -1,5 +1,6 @@
 import os
 import pickle
+import ctypes
 
 import tkinter as tk
 from tkinter import messagebox
@@ -62,7 +63,7 @@ def get_entry_text(window):
         height=2,
         width=15,
         font=("Arial", 32),
-        background= '#868600',  # Background color (your dark yellow)
+        background= 'slategray',  # Background color (your dark yellow)
         fg='white',   # Text color
         insertbackground='white',  # Cursor color
         selectbackground='#555555',  # Selection highlight bg
@@ -76,8 +77,11 @@ def get_entry_text(window):
     )
     return inputtxt
 
+ctypes.windll.user32.MessageBoxW.argtypes = [ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint]
+ctypes.windll.user32.MessageBoxW.restype = ctypes.c_int
+
 def msg_box(title, description):
-    messagebox.showinfo(title, description)
+    ctypes.windll.user32.MessageBoxW(0, description, title, 0x40)
 
 
 def recognize(img, db_path):

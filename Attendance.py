@@ -18,6 +18,7 @@ class App:
         self.main_window.geometry("1200x520+350+100")
         self.main_window.configure(background='#1a001a')
         
+        
         self.login_button_main_window = components.get_button(self.main_window, 'Login', '#a300a3', self.login)
         self.login_button_main_window.place(x=750, y=300)
         
@@ -67,6 +68,18 @@ class App:
         self.register_new_user_window.geometry("1200x520+370+120")
         self.register_new_user_window.configure(background='#1a001a')
         
+        try:
+            # For Windows (.ico)
+            self.main_window.iconbitmap("communityIcon_kbz7e49k7obb1.png")  
+            
+            # For Linux/macOS (or if above fails)
+            icon = tk.PhotoImage(file="company_logo/KFCS.ico")
+            self.main_window.tk.call('wm', 'iconphoto', self.main_window._w, icon)
+        except:
+            print("Icon not found - using default")
+            
+    
+        
         self.accept_button_register_new_user_window = components.get_button(self.register_new_user_window,
                                                                             'Accept',
                                                                             '#a300a3',
@@ -90,7 +103,7 @@ class App:
         self.text_label_register_new_user = components.get_text_label(self.register_new_user_window,'Please, \ninput username: ')
         self.text_label_register_new_user.place(x=750, y=45)
         
-        #does not work for now.  
+          
     def add_img_to_label(self, label):
             imgtk = ImageTk.PhotoImage(image=self.most_recent_capture_pil)
             label.imgtk = imgtk
@@ -112,6 +125,17 @@ class App:
     
     def start(self):
         self.main_window.title('Kantanka Financial Co-operative Society (KFCS) Attendance System')
+        
+        try:
+            # For Windows (.ico)
+            self.main_window.iconbitmap("communityIcon_kbz7e49k7obb1.png")  
+            
+            # For Linux/macOS (or if above fails)
+            icon = tk.PhotoImage(file="company_logo/KFCS.ico")
+            self.main_window.tk.call('wm', 'iconphoto', self.main_window._w, icon)
+        except:
+            print("Icon not found - using default")
+        
         self.main_window.mainloop()
         
         
