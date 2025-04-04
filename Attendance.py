@@ -74,8 +74,6 @@ class App:
 
         os.remove(unknown_image_path)
         
-        login_thread = threading.Thread(target="login", args=("self"))
-        login_thread.run()
         
     def logout(self):
         pass 
