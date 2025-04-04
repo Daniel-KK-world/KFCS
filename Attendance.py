@@ -10,6 +10,7 @@ import subprocess
 import face_recognition
 
 import components 
+import threading
 
 
 class App: 
@@ -73,6 +74,9 @@ class App:
 
         os.remove(unknown_image_path)
         
+        login_thread = threading.Thread(target="login", args=("self"))
+        login_thread.run()
+        
     def logout(self):
         pass 
     
@@ -129,7 +133,7 @@ class App:
         
         try:
             # For Windows (.ico)
-            self.main_window.iconbitmap("communityIcon_kbz7e49k7obb1.png")  
+            self.main_window.iconbitmap("company_logo\KFCS.ico")  
             
             # For Linux/macOS (or if above fails)
             icon = tk.PhotoImage(file="company_logo/KFCS.ico")

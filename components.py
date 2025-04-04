@@ -6,6 +6,8 @@ import tkinter as tk
 from tkinter import messagebox
 import face_recognition
 
+import threading
+
 
 def get_button(window, text, color, command, fg='white'):
     # Modern flat button base with hover effects
@@ -110,4 +112,3 @@ def recognize(img, db_path):
         return db_dir[j - 1][:-7]
     else:
         return 'unknown_person'
-
