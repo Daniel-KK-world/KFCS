@@ -2,8 +2,6 @@ import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
 import tkinter.font as tkFont
 from PIL import Image, ImageTk
-import components
-import cv2
 
 class AttendanceUI:
     def __init__(self):
@@ -29,21 +27,15 @@ class AttendanceUI:
         # Status bar
         self.create_status_bar()
         
-        self.add_webcam()
-        
-        self.process_webcam(self)
-        
         # Admin button (gear icon)
         self.create_admin_button()
         
-        # Sample logo (using placeholder if not found)
+        # logo call 
         self.create_logo()
         
         self.root.mainloop()
-        
     
     def create_main_container(self):
-        """Create the main white container with shadow"""
         # Shadow effect
         self.shadow = tk.Frame(self.root, bg='#e0e0e0')
         self.shadow.place(x=52, y=52, width=1180, height=620)
@@ -54,7 +46,6 @@ class AttendanceUI:
         self.main_frame.place(x=50, y=50, width=1180, height=620)
     
     def create_webcam_section(self):
-        """Create the webcam display area"""
         # Container for webcam with dark border
         self.webcam_container = tk.Frame(self.main_frame, bg='#333', bd=0)
         self.webcam_container.place(x=30, y=30, width=640, height=480)
@@ -63,35 +54,10 @@ class AttendanceUI:
         self.webcam_label = tk.Label(self.webcam_container, bg='#333')
         self.webcam_label.place(x=2, y=2, width=636, height=476)
         
-        # Add a mock "webcam not active" message
+        #  "webcam not active" message
         self.webcam_label.config(text="WEBCAM FEED\n[Preview Area]", 
                                fg="white", font=self.button_font,
                                justify='center')
-             
-    def add_webcam(self, label):
-    #Initialize and start webcam feed in a Tkinter label
-        if not hasattr(self, 'cap') or not self.cap.isOpened():
-            self.cap = cv2.VideoCapture(0)  # 0 = default camera
-        if not self.cap.isOpened():
-            print("Error: Could not open webcam!")
-            return False
-    
-        self._label = label  # Tkinter label where the webcam feed will be displayed
-        self.process_webcam()  
-        return True
-        
-    def process_webcam(self):
-        ret, frame = self.cap.read()
-
-        self.most_recent_capture_arr = frame
-        img_ = cv2.cvtColor(self.most_recent_capture_arr, cv2.COLOR_BGR2RGB)
-        self.most_recent_capture_pil = Image.fromarray(img_)
-        imgtk = ImageTk.PhotoImage(image=self.most_recent_capture_pil)
-        self._label.imgtk = imgtk
-        self._label.configure(image=imgtk)
-
-        self._label.after(20, self.process_webcam)
-
     
     def create_control_panel(self):
         """Create the right-side control panel"""
@@ -132,27 +98,24 @@ class AttendanceUI:
         tk.Label(stats_frame, text="5", bg='white', fg='#FF9800').grid(row=2, column=1, sticky='w')
     
     def create_status_bar(self):
-        """Create the status bar at bottom"""
         self.status = tk.Label(self.main_frame, text="System Ready | Connected | Last sync: Today 10:00 AM", 
                              font=self.small_font, bg='white', fg='#666',
                              anchor='w')
         self.status.place(x=30, y=530, width=1120)
     
     def create_admin_button(self):
-        """Create the admin access button"""
         self.admin_btn = tk.Label(self.main_frame, text="⚙", font=("Arial", 14), 
                                  bg='white', fg='#999', cursor="hand2")
         self.admin_btn.place(x=1130, y=580)
         self.admin_btn.bind("<Button-1>", lambda e: self.show_admin_panel())
     
     def create_logo(self):
-        """Create company logo (using placeholder if needed)"""
         try:
             # Try to load actual logo
-            self.logo_img = Image.open("company_logo\KFCS.ico").resize((200,80))
+            self.logo_img = Image.open("logo.png").resize((200,80))
             self.logo_tk = ImageTk.PhotoImage(self.logo_img)
         except:
-            # Create placeholder if logo not found
+            # Create a placeholder if logo not found
             self.logo_img = Image.new('RGB', (200, 80), color='#2196F3')
             self.logo_tk = ImageTk.PhotoImage(self.logo_img)
             
@@ -180,7 +143,6 @@ class AttendanceUI:
         return f'#{lighter[0]:02x}{lighter[1]:02x}{lighter[2]:02x}'
     
     def show_admin_panel(self):
-        """Show the admin panel mockup"""
         admin_win = tk.Toplevel(self.root)
         admin_win.geometry("900x600+200+100")
         admin_win.title("Admin Dashboard")
@@ -223,15 +185,15 @@ class AttendanceUI:
         hours_frame = ttk.Frame(notebook)
         notebook.add(hours_frame, text="Working Hours")
         
-        # Sample working hours chart
+        #Sample working hours chart
         tk.Label(hours_frame, text="Weekly Hours Report", 
                 font=self.title_font).pack(pady=10)
         
-        # Placeholder for chart
+        #Placeholder for chart
         chart_placeholder = tk.Canvas(hours_frame, bg='white', height=300)
         chart_placeholder.pack(fill='x', padx=20, pady=20)
         
-        # Draw simple bar chart
+        #simple bar chart
         chart_placeholder.create_rectangle(50, 50, 100, 250, fill='#4CAF50')
         chart_placeholder.create_rectangle(120, 100, 170, 250, fill='#4CAF50')
         chart_placeholder.create_rectangle(190, 150, 240, 250, fill='#4CAF50')
@@ -268,11 +230,11 @@ class AttendanceUI:
         ttk.Button(btn_frame, text="Add User", command=self.mock_command).pack(side='left', padx=5)
         ttk.Button(btn_frame, text="Edit User", command=self.mock_command).pack(side='left', padx=5)
         ttk.Button(btn_frame, text="Remove User", command=self.mock_command).pack(side='left', padx=5)
-    
+    #manipulate message box to get shots for the UI in the meantime. 
     def mock_command(self):
         """Placeholder for button commands"""
         messagebox.showinfo("Notice", "This is a UI mockup\nFunctionality not implemented")
 
-# Run the UI
+
 if __name__ == "__main__":
     app = AttendanceUI()

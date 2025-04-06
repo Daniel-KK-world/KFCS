@@ -10,6 +10,9 @@ from datetime import datetime
 import csv
 import face_recognition
 import pickle
+import threading
+import queue
+import time
 
 class AttendanceSystem:
     def __init__(self):
@@ -126,6 +129,12 @@ class AttendanceUI:
         self.button_font = tkFont.Font(family="Segoe UI", size=12)
         self.small_font = tkFont.Font(family="Segoe UI", size=10)
         
+        # Threading setup
+        self.face_recognition_queue = queue.Queue()
+        self.face_recognition_active = False
+        self.current_user = None
+        self.current_face_encoding = None
+        
         # Create main container with shadow
         self.create_main_container()
         
@@ -188,9 +197,34 @@ class AttendanceUI:
         self.current_user_label.place(x=10, y=10)
     
     def process_webcam(self):
+        """Main webcam processing loop with face detection"""
         ret, frame = self.cap.read()
         
         if ret:
+            # Display frame
+            img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            img = Image.fromarray(img)
+            imgtk = ImageTk.PhotoImage(image=img)
+            
+            self.webcam_label.imgtk = imgtk
+            self.webcam_label.configure(image=imgtk)
+            
+            # Only do face recognition if not already processing
+            if not self.face_recognition_active:
+                # Start face recognition in a separate thread
+                self.face_recognition_active = True
+                threading.Thread(
+                    target=self._process_face_recognition,
+                    args=(frame.copy(),),
+                    daemon=True
+                ).start()
+        
+        # Repeat every 30ms
+        self.webcam_label.after(30, self.process_webcam)
+    
+    def _process_face_recognition(self, frame):
+        """Process face recognition in background thread"""
+        try:
             # Resize frame for faster processing
             small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
             rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
@@ -199,44 +233,27 @@ class AttendanceUI:
             face_locations = face_recognition.face_locations(rgb_small_frame)
             face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
             
-            # Reset current user
-            self.current_user = None
-            
-            for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
-                # Scale back up face locations
-                top *= 4
-                right *= 4
-                bottom *= 4
-                left *= 4
-                
-                # Recognize face
+            if face_locations:
+                # Get the first face (most prominent)
+                face_encoding = face_encodings[0]
                 name = self.attendance_system.recognize_face(face_encoding)
                 
-                # Store the first recognized user
-                if name != "Unknown" and not self.current_user:
-                    self.current_user = name
-                    self.current_user_label.config(text=f"User: {name}")
-                
-                # Draw rectangle and label
-                cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
-                cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
-                cv2.putText(frame, name, (left + 6, bottom - 6), 
-                           cv2.FONT_HERSHEY_DUPLEX, 0.8, (255, 255, 255), 1)
-            
-            if not self.current_user:
-                self.current_user_label.config(text="No recognized user")
-            
-            # Convert to PhotoImage
-            img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            img = Image.fromarray(img)
-            imgtk = ImageTk.PhotoImage(image=img)
-            
-            # Update label
-            self.webcam_label.imgtk = imgtk
-            self.webcam_label.configure(image=imgtk)
+                # Update UI in main thread
+                self.root.after(0, self._update_recognized_user, name, face_encoding)
+        except Exception as e:
+            print(f"Face recognition error: {e}")
+        finally:
+            self.face_recognition_active = False
+    
+    def _update_recognized_user(self, name, face_encoding):
+        """Update the UI with recognized user (called from main thread)"""
+        self.current_user = name if name != "Unknown" else None
+        self.current_face_encoding = face_encoding if name != "Unknown" else None
         
-        # Repeat every 20ms
-        self.webcam_label.after(30, self.process_webcam)
+        if self.current_user:
+            self.current_user_label.config(text=f"User: {self.current_user}")
+        else:
+            self.current_user_label.config(text="No recognized user")
     
     def create_control_panel(self):
         """Create the right-side control panel"""
@@ -277,6 +294,11 @@ class AttendanceUI:
         tk.Label(self.stats_frame, text="Pending:", bg='white').grid(row=2, column=0, sticky='e')
         self.pending_label = tk.Label(self.stats_frame, text="0", bg='white', fg='#FF9800')
         self.pending_label.grid(row=2, column=1, sticky='w')
+        
+        # Export button
+        self.export_btn = self.create_modern_button(
+            self.control_panel, "EXPORT TO EXCEL", "#9C27B0", self.export_attendance_data)
+        self.export_btn.pack(pady=15, ipady=10)
         
         # Update stats
         self.update_stats()
@@ -351,7 +373,7 @@ class AttendanceUI:
         return f'#{lighter[0]:02x}{lighter[1]:02x}{lighter[2]:02x}'
     
     def check_in(self):
-        if not hasattr(self, 'current_user') or not self.current_user:
+        if not self.current_user:
             messagebox.showwarning("Warning", "No recognized user detected!")
             return
         
@@ -363,7 +385,7 @@ class AttendanceUI:
             messagebox.showwarning("Warning", message)
     
     def check_out(self):
-        if not hasattr(self, 'current_user') or not self.current_user:
+        if not self.current_user:
             messagebox.showwarning("Warning", "No recognized user detected!")
             return
         
@@ -375,34 +397,60 @@ class AttendanceUI:
             messagebox.showwarning("Warning", message)
     
     def register_user(self):
-        name = simpledialog.askstring("Register New User", "Enter user's  name:")
+        name = simpledialog.askstring("Register New User", "Enter user's full name:")
         if not name:
             return
         
-        # Capture face samples
-        samples = []
+        # Capture face samples in a separate thread to prevent UI freeze
+        def capture_samples():
+            samples = []
+            for i in range(5):
+                ret, frame = self.cap.read()
+                if ret:
+                    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    face_locations = face_recognition.face_locations(rgb_frame)
+                    
+                    if len(face_locations) == 1:
+                        face_encoding = face_recognition.face_encodings(rgb_frame, face_locations)[0]
+                        samples.append(face_encoding)
+                        self.root.after(0, messagebox.showinfo, "Sample Captured", f"Sample {i+1}/5 captured")
+                    else:
+                        self.root.after(0, messagebox.showerror, "Error", "Could not detect face. Please try again.")
+                        return
+            
+            if len(samples) == 5:
+                # Average the encodings
+                avg_encoding = np.mean(samples, axis=0)
+                self.attendance_system.register_new_user(name, avg_encoding)
+                self.root.after(0, messagebox.showinfo, "Success", f"User {name} registered successfully!")
+                self.root.after(0, self.status.config, 
+                              text=f"System Ready | {len(self.attendance_system.known_face_names)} users registered | Last sync: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        
+        # Show initial instructions
         messagebox.showinfo("Instructions", "Please look directly at the camera. We'll capture 5 samples.")
         
-        for i in range(5):
-            ret, frame = self.cap.read()
-            if ret:
-                rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                face_locations = face_recognition.face_locations(rgb_frame)
-                
-                if len(face_locations) == 1:
-                    face_encoding = face_recognition.face_encodings(rgb_frame, face_locations)[0]
-                    samples.append(face_encoding)
-                    messagebox.showinfo("Sample Captured", f"Sample {i+1}/5 captured")
-                else:
-                    messagebox.showerror("Error", "Could not detect face. Please try again.")
-                    return
-        
-        if len(samples) == 5:
-            # Average the encodings
-            avg_encoding = np.mean(samples, axis=0)
-            self.attendance_system.register_new_user(name, avg_encoding)
-            messagebox.showinfo("Success", f"User {name} registered successfully!")
-            self.status.config(text=f"System Ready | {len(self.attendance_system.known_face_names)} users registered | Last sync: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        # Start sample capture in background
+        threading.Thread(target=capture_samples, daemon=True).start()
+    
+    def export_attendance_data(self):
+        """Export all attendance data to Excel"""
+        try:
+            if not self.attendance_system.attendance_log:
+                messagebox.showwarning("Warning", "No attendance data to export!")
+                return
+            
+            # Create DataFrame from attendance log
+            df = pd.DataFrame(self.attendance_system.attendance_log)
+            
+            # Create timestamped filename
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"attendance_export_{timestamp}.xlsx"
+            
+            # Export to Excel
+            df.to_excel(filename, index=False)
+            messagebox.showinfo("Success", f"Attendance data exported to {filename}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to export data: {str(e)}")
     
     def show_admin_panel(self):
         """Show the admin panel with actual data"""
@@ -463,7 +511,7 @@ class AttendanceUI:
                   command=lambda: self.remove_user(user_list)).pack(side='left', padx=5)
     
     def export_to_excel(self, tree):
-        """Export attendance data to Excel"""
+        """Export attendance data to Excel from treeview"""
         try:
             items = tree.get_children()
             data = []
