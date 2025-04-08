@@ -141,10 +141,10 @@ class AttendanceUI:
         # Admin button (gear icon)
         self.create_admin_button()
         
-        # Sample logo (using placeholder if not found)
+        # logo call 
         self.create_logo()
         
-        # Webcam initialization
+        # Webcam init
         self.cap = cv2.VideoCapture(0)
         if not self.cap.isOpened():
             messagebox.showerror("Error", "Could not open webcam!")
@@ -235,11 +235,11 @@ class AttendanceUI:
             self.webcam_label.imgtk = imgtk
             self.webcam_label.configure(image=imgtk)
         
-        # Repeat every 20ms
-        self.webcam_label.after(30, self.process_webcam)
+        # Repeat every 40ms
+        self.webcam_label.after(40, self.process_webcam)
     
     def create_control_panel(self):
-        """Create the right-side control panel"""
+        #right side pannel
         self.control_panel = tk.Frame(self.main_frame, bg='white', bd=0)
         self.control_panel.place(x=700, y=30, width=450, height=560)
         
@@ -260,7 +260,7 @@ class AttendanceUI:
             self.control_panel, "REGISTER NEW USER", "#2196F3", self.register_user)
         self.register_btn.pack(pady=15, ipady=10)
         
-        # Add some decorative elements
+        # Add decorative elements
         ttk.Separator(self.control_panel, orient='horizontal').pack(fill='x', pady=20)
         
         # Quick stats placeholder
@@ -308,14 +308,14 @@ class AttendanceUI:
         self.status.place(x=30, y=530, width=1120)
     
     def create_admin_button(self):
-        """Create the admin access button"""
+        #Gear button for Admin
         self.admin_btn = tk.Label(self.main_frame, text="⚙", font=("Arial", 14), 
                                  bg='white', fg='#999', cursor="hand2")
         self.admin_btn.place(x=1130, y=580)
         self.admin_btn.bind("<Button-1>", lambda e: self.show_admin_panel())
     
     def create_logo(self):
-        """Create company logo (using placeholder if needed)"""
+        #error handling
         try:
             # Try to load actual logo
             self.logo_img = Image.open("company_logo/KFCS.ico").resize((200,150))
@@ -330,7 +330,6 @@ class AttendanceUI:
         tk.Label(self.control_panel, image=self.logo_tk, bg='white').pack(pady=20)
     
     def create_modern_button(self, parent, text, color, command):
-        """Helper to create stylish buttons"""
         btn = tk.Button(parent, text=text, command=command, 
                        font=self.button_font, bg=color, fg='white',
                        activebackground=self.lighten_color(color), 
