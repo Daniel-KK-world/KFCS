@@ -460,6 +460,27 @@ class AttendanceUI:
         
         ttk.Button(btn_frame, text="Remove User", 
                   command=lambda: self.remove_user(user_list)).pack(side='left', padx=5)
+        #tab 3
+          # Tab 2: Working Hours
+        hours_frame = ttk.Frame(notebook)
+        notebook.add(hours_frame, text="Working Hours")
+        
+        #Sample working hours chart
+        tk.Label(hours_frame, text="Weekly Hours Report", 
+                font=self.title_font).pack(pady=10)
+        
+        #Placeholder for chart
+        chart_placeholder = tk.Canvas(hours_frame, bg='white', height=300)
+        chart_placeholder.pack(fill='x', padx=20, pady=20)
+        
+        #simple bar chart
+        chart_placeholder.create_rectangle(50, 50, 100, 250, fill='#4CAF50')
+        chart_placeholder.create_rectangle(120, 100, 170, 250, fill='#4CAF50')
+        chart_placeholder.create_rectangle(190, 150, 240, 250, fill='#4CAF50')
+        chart_placeholder.create_text(75, 270, text="Mon")
+        chart_placeholder.create_text(145, 270, text="Tue")
+        chart_placeholder.create_text(215, 270, text="Wed")
+        
     
     def export_to_excel(self, tree):
         """Export attendance data to Excel"""
