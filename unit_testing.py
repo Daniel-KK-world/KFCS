@@ -3,9 +3,9 @@ from tkinter import simpledialog
 
 class CustomDialog(simpledialog.Dialog):
     def body(self, master):
-        self.geometry("400x300")  # Attempt to resize
+        self.geometry("400x300")  
         tk.Label(master, text="Enter user's name:").pack()
-        self.entry = tk.Entry(master, width=50)  # Make input field bigger
+        self.entry = tk.Entry(master, width=50)  
         self.entry.pack()
         return self.entry
 

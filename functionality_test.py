@@ -117,6 +117,7 @@ class AttendanceUI:
         self.root.geometry("1280x720+100+50")
         self.root.title("KFCS Attendance Pro")
         self.root.configure(bg='#f5f5f5')
+        self.root.iconbitmap(default='')  
         
         # Initialize attendance system
         self.attendance_system = AttendanceSystem()
@@ -140,6 +141,9 @@ class AttendanceUI:
         
         # Admin button (gear icon)
         self.create_admin_button()
+        
+        #User button (Person icon)
+        self.create_user_button()
         
         # logo call 
         self.create_logo()
@@ -309,10 +313,19 @@ class AttendanceUI:
     
     def create_admin_button(self):
         #Gear button for Admin
-        self.admin_btn = tk.Label(self.main_frame, text="⚙", font=("Arial", 14), 
+        self.admin_btn = tk.Label(self.main_frame, text="⚙", font=("Arial", 20), 
                                  bg='white', fg='#999', cursor="hand2")
         self.admin_btn.place(x=1130, y=580)
         self.admin_btn.bind("<Button-1>", lambda e: self.show_admin_panel())
+    def create_user_button(self):
+        #button for user 
+        self.user_btn = tk.Label(self.main_frame, text="👤", font=('Arial', 20),
+                                    bg='white', 
+                                    fg='#999',
+                                    cursor="hand2")
+        self.user_btn.place(x=1130, y=10)
+        self.user_btn.bind("<Button-1>", lambda e: self.show_user_panel())
+  
     
     def create_logo(self):
         #error handling
@@ -374,7 +387,8 @@ class AttendanceUI:
             messagebox.showwarning("Warning", message)
     
     def register_user(self):
-        name = simpledialog.askstring("Register New User", "Enter user's  name:")
+        self.root.option_add('*Font', 'Arial 14')
+        name = simpledialog.askstring("Register New User", "Enter user's  name:", parent=self.root)
         if not name:
             return
         
@@ -461,7 +475,7 @@ class AttendanceUI:
         ttk.Button(btn_frame, text="Remove User", 
                   command=lambda: self.remove_user(user_list)).pack(side='left', padx=5)
         #tab 3
-          # Tab 2: Working Hours
+          # Tab 3: Working Hours
         hours_frame = ttk.Frame(notebook)
         notebook.add(hours_frame, text="Working Hours")
         
@@ -480,27 +494,118 @@ class AttendanceUI:
         chart_placeholder.create_text(75, 270, text="Mon")
         chart_placeholder.create_text(145, 270, text="Tue")
         chart_placeholder.create_text(215, 270, text="Wed")
-        
     
-    def export_to_excel(self, tree):
-        """Export attendance data to Excel"""
-        try:
-            items = tree.get_children()
-            data = []
-            for item in items:
-                values = tree.item(item, 'values')
-                data.append(values)
+    def show_user_panel(self):
+        user_win = tk.Toplevel(self.root)
+        user_win.geometry("800x600")
+        user_win.title(f"{self.current_user}'s Attendance Dashboard")
+        user_win.configure(bg='#f0f2f5')  # Light modern bg
+
+        # --- Header with User Avatar ---
+        header = tk.Frame(user_win, bg='#2c3e50', height=80)
+        header.pack(fill='x')
+        
+        # User avatar (replace with actual user image if available)
+        avatar = tk.Label(header, text="👤", font=("Arial", 24), bg='#2c3e50', fg='white')
+        avatar.pack(side='left', padx=20)
+        
+        tk.Label(header, text=f"{self.current_user}", font=("Arial", 16, 'bold'), 
+                bg='#2c3e50', fg='white').pack(side='left')
+        
+        # --- Today's Status Card ---
+        status_card = tk.Frame(user_win, bg='white', bd=2, relief='groove')
+        status_card.pack(fill='x', padx=20, pady=10)
+        
+        today = datetime.now().strftime("%Y-%m-%d")
+        today_record = next((r for r in self.attendance_system.attendance_log 
+                        if r["Name"] == self.current_user and r["Date"] == today), None)
+        
+        # Dynamic status with emoji
+        status_emoji = "🟢" if today_record and today_record["Check-in"] else "🔴"
+        status_text = (f"{status_emoji} Today: " +
+                    (f"Checked in at {today_record['Check-in']}" if today_record 
+                    else "Not checked in"))
+        
+        tk.Label(status_card, text=status_text, font=("Arial", 14), 
+                bg='white').pack(pady=10)
+        
+        # --- Stats Cards Row ---
+        stats_frame = tk.Frame(user_win, bg='#f0f2f5')
+        stats_frame.pack(fill='x', padx=20, pady=10)
+        
+        # Card 1: Present Days
+        present_days = len([r for r in self.attendance_system.attendance_log 
+                        if r["Name"] == self.current_user and r["Check-in"]])
+        self._create_stat_card(stats_frame, "Present Days", present_days, "#4CAF50")
+        
+        # Card 2: Avg Hours
+        avg_hours = self._calculate_avg_hours(self.current_user)
+        self._create_stat_card(stats_frame, "Avg Hours/Day", f"{avg_hours:.1f}h", "#2196F3")
+        
+        # Card 3: Late Days
+        late_days = len([r for r in self.attendance_system.attendance_log 
+                        if r["Name"] == self.current_user and 
+                        self._is_late(r["Check-in"])])
+        self._create_stat_card(stats_frame, "Late Days", late_days, "#FF9800")
+
+        # --- Attendance Table ---
+        table_frame = tk.Frame(user_win)
+        table_frame.pack(fill='both', expand=True, padx=20, pady=10)
+        
+        # Treeview with scrollbar
+        columns = ("Date", "Check-in", "Check-out", "Hours", "Status")
+        tree = ttk.Treeview(table_frame, columns=columns, show="headings", height=8)
+        
+        for col in columns:
+            tree.heading(col, text=col)
+            tree.column(col, width=120, anchor='center')
+        
+        # Insert data with status indicators
+        for record in sorted(
+            [r for r in self.attendance_system.attendance_log 
+            if r["Name"] == self.current_user],
+            key=lambda x: x["Date"], 
+            reverse=True
+        ):
+            hours = self._calculate_hours(record["Check-in"], record["Check-out"])
+            status = self._get_status_icon(record["Check-in"], record["Check-out"])
+            tree.insert("", "end", values=(
+                record["Date"],
+                record["Check-in"] or "-",
+                record["Check-out"] or "-",
+                hours or "-",
+                status
+            ))
+        
+        scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=tree.yview)
+        tree.configure(yscrollcommand=scrollbar.set)
+        tree.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        # --- Export Button ---
+        ttk.Button(user_win, text="Export My Data", 
+                command=lambda: self.export_user_data(self.current_user),
+                style='Accent.TButton').pack(pady=20)
+
+        def _create_stat_card(self, parent, title, value, color):
+            """Helper to create metric cards"""
+            card = tk.Frame(parent, bg='white', bd=1, relief='groove')
+            card.pack(side='left', expand=True, padx=5)
             
-            df = pd.DataFrame(data, columns=["Date", "Name", "Check-in", "Check-out"])
-            
-            # Create a timestamped filename
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"attendance_report_{timestamp}.xlsx"
-            
-            df.to_excel(filename, index=False)
-            messagebox.showinfo("Success", f"Report exported as {filename}")
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to export: {str(e)}")
+            tk.Label(card, text=title, font=("Arial", 10), bg='white').pack(pady=(10,0))
+            tk.Label(card, text=value, font=("Arial", 18, 'bold'), bg='white', 
+                    fg=color).pack(pady=5)
+        
+    def _get_status_icon(self, check_in, check_out):
+        """Return emoji status for table"""
+        if not check_in:
+            return "❌ Absent"
+        elif check_in and not check_out:
+            return "🟡 Working"
+        elif self._is_late(check_in):
+            return "⚠️ Late"
+        else:
+            return "✅ Present"
     
     def remove_user(self, user_list):
         """Remove selected user from the system"""
