@@ -248,7 +248,7 @@ class AttendanceUI:
         self.control_panel.place(x=700, y=30, width=450, height=560)
         
         # Welcome message
-        tk.Label(self.control_panel, text="KFCS PRO", 
+        tk.Label(self.control_panel, text="KFCS Attendance Pro", 
                 font=self.title_font, bg='white', fg='#333').pack(pady=10)
         
         # Modern buttons
@@ -416,7 +416,6 @@ class AttendanceUI:
             self.attendance_system.register_new_user(name, avg_encoding)
             messagebox.showinfo("Success", f"User {name} registered successfully!")
             self.status.config(text=f"System Ready | {len(self.attendance_system.known_face_names)} users registered | Last sync: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    
     def show_admin_panel(self):
         """Show the admin panel with actual data"""
         admin_win = tk.Toplevel(self.root)
@@ -432,74 +431,127 @@ class AttendanceUI:
         reports_frame = ttk.Frame(notebook)
         notebook.add(reports_frame, text="Attendance Reports")
         
-        # Treeview setup (existing code...)
+        # Treeview for data display
+        columns = ("Date", "Name", "Check-in", "Check-out")
+        tree = ttk.Treeview(reports_frame, columns=columns, show="headings")
+        
+        for col in columns:
+            tree.heading(col, text=col)
+            tree.column(col, width=120)
+        
+        tree.pack(fill='both', expand=True, padx=10, pady=10)
+        
+        # Insert real data
+        for record in self.attendance_system.attendance_log:
+            tree.insert("", "end", values=(
+                record["Date"],
+                record["Name"],
+                record["Check-in"],
+                record["Check-out"]
+            ))
+        
+        # Export button
+        ttk.Button(reports_frame, text="Export to Excel", 
+                command=lambda: self.export_to_excel(tree)).pack(pady=10)
         
         # --- Tab 2: User Management ---
         user_frame = ttk.Frame(notebook)
         notebook.add(user_frame, text="User Management")
         
-        # User list setup (existing code...)
+        # User list
+        user_list = ttk.Treeview(user_frame, columns=("Name"), show="headings")
+        user_list.heading("Name", text="Name")
+        user_list.pack(fill='both', expand=True, padx=10, pady=10)
+        
+        # Add registered users
+        for name in set(self.attendance_system.known_face_names):
+            user_list.insert("", "end", values=(name,))
+        
+        # Action buttons
+        btn_frame = tk.Frame(user_frame)
+        btn_frame.pack(pady=10)
+        
+        ttk.Button(btn_frame, text="Remove User", 
+                command=lambda: self.remove_user(user_list)).pack(side='left', padx=5)
         
         # --- Tab 3: Working Hours ---
         hours_frame = ttk.Frame(notebook)
-        notebook.add(hours_frame, text="Working Hours")  # <-- THIS WAS MISSING
-        
-        # Weekly chart
-        tk.Label(hours_frame, text="Weekly Hours Report", 
-                font=self.title_font).pack(pady=10)
-        
+        notebook.add(hours_frame, text="Working Hours")
+
+        # Calculate real weekly averages
+        def get_weekly_hours():
+            weekly_hours = {"Mon":0, "Tue":0, "Wed":0, "Thu":0, "Fri":0}
+            counts = {"Mon":0, "Tue":0, "Wed":0, "Thu":0, "Fri":0}
+            
+            for record in self.attendance_system.attendance_log:
+                if record["Check-in"] and record["Check-out"]:
+                    try:
+                        day = datetime.strptime(record["Date"], "%Y-%m-%d").strftime("%a")
+                        if day in weekly_hours:
+                            check_in = datetime.strptime(record["Check-in"], "%H:%M:%S")
+                            check_out = datetime.strptime(record["Check-out"], "%H:%M:%S")
+                            hours = (check_out - check_in).seconds / 3600
+                            weekly_hours[day] += hours
+                            counts[day] += 1
+                    except:
+                        continue
+            
+            # Calculate averages
+            return {day: (weekly_hours[day]/counts[day] if counts[day] > 0 else 0) 
+                    for day in weekly_hours}
+
+        # Draw the chart with REAL data
         chart_placeholder = tk.Canvas(hours_frame, bg='white', height=300)
         chart_placeholder.pack(fill='both', expand=True, padx=20, pady=20)
-        
-        # Sample data - replace with real calculations later
-        days = ["Mon", "Tue", "Wed", "Thu", "Fri"]
-        avg_hours = [8.2, 7.5, 6.8, 8.0, 5.5]  # Mock averages
-        
-        # Draw chart
-        bar_width = 40
-        spacing = 50
-        x_start = 50
-        
-        for i, (day, hours) in enumerate(zip(days, avg_hours)):
-            bar_height = hours * 20  
-            x0 = x_start + (i * (bar_width + spacing))
+
+        weekly_avg = get_weekly_hours()
+        days_order = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+
+        for i, day in enumerate(days_order):
+            hours = weekly_avg.get(day, 0)
+            bar_height = hours * 20
+            x0 = 50 + (i * 90)
             y0 = 250 - bar_height
             
             color = '#4CAF50' if hours >= 7 else '#F44336'
-            chart_placeholder.create_rectangle(x0, y0, x0+bar_width, 250, fill=color)
-            chart_placeholder.create_text(x0+bar_width/2, 270, text=day)
-            chart_placeholder.create_text(x0+bar_width/2, y0-10, text=f"{hours}h")
-
-        # --- NEW Tab 4: Overtime Tracking ---
+            chart_placeholder.create_rectangle(x0, y0, x0+60, 250, fill=color)
+            chart_placeholder.create_text(x0+30, 270, text=day)
+            chart_placeholder.create_text(x0+30, y0-10, text=f"{hours:.1f}h")
+        
+        # --- Tab 4: Overtime Tracking ---
         overtime_frame = ttk.Frame(notebook)
         notebook.add(overtime_frame, text="Overtime")
-        
-        # Overtime table
-        tk.Label(overtime_frame, text="Overtime Records", 
-                font=self.title_font).pack(pady=10)
-        
-        columns = ("Name", "Date", "Regular Hours", "Overtime")
+
+        def get_overtime_data():
+            overtime = []
+            for record in self.attendance_system.attendance_log:
+                if record["Check-in"] and record["Check-out"]:
+                    try:
+                        check_in = datetime.strptime(record["Check-in"], "%H:%M:%S")
+                        check_out = datetime.strptime(record["Check-out"], "%H:%M:%S")
+                        total_hours = (check_out - check_in).seconds / 3600
+                        if total_hours > 8:
+                            overtime.append((
+                                record["Name"],
+                                record["Date"],
+                                f"{total_hours - 8:.1f}"
+                            ))
+                    except:
+                        continue
+            return overtime
+
+        # Populate table with REAL overtime data
+        columns = ("Name", "Date", "Overtime Hours")
         tree = ttk.Treeview(overtime_frame, columns=columns, show="headings", height=15)
-        
+
         for col in columns:
             tree.heading(col, text=col)
             tree.column(col, width=120, anchor='center')
-        
-        # Sample data
-        sample_data = [
-            ("Alice", "2023-10-01", "8.0", "2.5"),
-            ("Bob", "2023-10-02", "8.0", "1.0"),
-            ("Charlie", "2023-10-03", "8.0", "3.2")
-        ]
-        
-        for record in sample_data:
+
+        for record in get_overtime_data():
             tree.insert("", "end", values=record)
-        
+
         tree.pack(fill='both', expand=True, padx=10, pady=10)
-        
-        # Export button
-        ttk.Button(overtime_frame, text="Export Overtime", 
-                command=lambda: self.export_overtime(tree)).pack(pady=10)
             
     def show_user_panel(self):
         user_win = tk.Toplevel(self.root)
