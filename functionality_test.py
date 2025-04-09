@@ -65,15 +65,34 @@ class AttendanceSystem:
         self.known_face_encodings.append(face_encoding)
         self.save_known_faces()
     
-    def recognize_face(self, face_encoding):
-        matches = face_recognition.compare_faces(self.known_face_encodings, face_encoding)
-        name = "Unknown"
+    def recognize_face(self, face_encoding, tolerance=0.5):
+        """
+        Improved face recognition with better matching logic
+        Args:
+            face_encoding: Encoding of the face to recognize
+            tolerance: How strict the match should be (lower = stricter)
+        Returns:
+            name (str): Best match or "Unknown"
+            confidence (float): Match confidence (0-1)
+        """
+        # Calculate distances to all known faces
+        distances = face_recognition.face_distance(
+            self.known_face_encodings, 
+            face_encoding
+        )
         
-        if True in matches:
-            first_match_index = matches.index(True)
-            name = self.known_face_names[first_match_index]
+        # Find the best match (smallest distance)
+        best_match_idx = np.argmin(distances)
+        best_distance = distances[best_match_idx]
         
-        return name
+        # Calculate confidence (inverted and normalized)
+        confidence = 1 - min(best_distance / tolerance, 1.0)
+        
+        # Only return a match if it meets tolerance threshold
+        if best_distance <= tolerance:
+            return self.known_face_names[best_match_idx], confidence
+        else:
+            return "Unknown", confidence
     
     def record_attendance(self, name, action):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -555,70 +574,68 @@ class AttendanceUI:
             
     def show_user_panel(self):
         user_win = tk.Toplevel(self.root)
-        user_win.geometry("800x600")
+        user_win.geometry("900x600")
         user_win.title(f"{self.current_user}'s Attendance Dashboard")
-        user_win.configure(bg='#f0f2f5')  # Light modern bg
+        user_win.configure(bg='#f0f2f5')
 
-        # --- Header with User Avatar ---
-        header = tk.Frame(user_win, bg='#2c3e50', height=80)
+        # ===== HEADER =====
+        header = tk.Frame(user_win, bg='#2c3e50', height=100)
         header.pack(fill='x')
         
-        # User avatar (replace with actual user image if available)
-        avatar = tk.Label(header, text="👤", font=("Arial", 24), bg='#2c3e50', fg='white')
-        avatar.pack(side='left', padx=20)
+        # User info
+        tk.Label(header, 
+                text=f"{self.current_user}", 
+                font=("Arial", 20, 'bold'), 
+                bg='#2c3e50', fg='white').pack(side='left', padx=20, pady=10)
         
-        tk.Label(header, text=f"{self.current_user}", font=("Arial", 16, 'bold'), 
-                bg='#2c3e50', fg='white').pack(side='left')
-        
-        # --- Today's Status Card ---
-        status_card = tk.Frame(user_win, bg='white', bd=2, relief='groove')
-        status_card.pack(fill='x', padx=20, pady=10)
+        # ===== TODAY'S STATUS CARD =====
+        status_frame = tk.Frame(user_win, bg='white', bd=2, relief='groove')
+        status_frame.pack(fill='x', padx=20, pady=10)
         
         today = datetime.now().strftime("%Y-%m-%d")
         today_record = next((r for r in self.attendance_system.attendance_log 
-                        if r["Name"] == self.current_user and r["Date"] == today), None)
+                            if r["Name"] == self.current_user and r["Date"] == today), None)
         
-        # Dynamic status with emoji
-        status_emoji = "🟢" if today_record and today_record["Check-in"] else "🔴"
-        status_text = (f"{status_emoji} Today: " +
-                    (f"Checked in at {today_record['Check-in']}" if today_record 
-                    else "Not checked in"))
+        status_text = ("✅ Currently working" if today_record and not today_record["Check-out"] else
+                    "🟢 Checked out" if today_record else 
+                    "🔴 Not checked in today")
         
-        tk.Label(status_card, text=status_text, font=("Arial", 14), 
-                bg='white').pack(pady=10)
+        tk.Label(status_frame, text="TODAY'S STATUS", 
+                font=("Arial", 12, 'bold'), bg='white').grid(row=0, column=0, sticky='w', padx=10)
+        tk.Label(status_frame, text=status_text, 
+                font=("Arial", 14), bg='white').grid(row=1, column=0, sticky='w', padx=10, pady=5)
         
-        # --- Stats Cards Row ---
-        stats_frame = tk.Frame(user_win, bg='#f0f2f5')
-        stats_frame.pack(fill='x', padx=20, pady=10)
+        # ===== METRIC CARDS =====
+        metrics_frame = tk.Frame(user_win, bg='#f0f2f5')
+        metrics_frame.pack(fill='x', padx=20, pady=10)
         
         # Card 1: Present Days
         present_days = len([r for r in self.attendance_system.attendance_log 
                         if r["Name"] == self.current_user and r["Check-in"]])
-        self._create_stat_card(stats_frame, "Present Days", present_days, "#4CAF50")
+        self._create_metric_card(metrics_frame, "Present Days", present_days, "#4CAF50", 0, 0)
         
         # Card 2: Avg Hours
         avg_hours = self._calculate_avg_hours(self.current_user)
-        self._create_stat_card(stats_frame, "Avg Hours/Day", f"{avg_hours:.1f}h", "#2196F3")
+        self._create_metric_card(metrics_frame, "Avg Hours/Day", f"{avg_hours:.1f}h", "#2196F3", 0, 1)
         
-        # Card 3: Late Days
+        # Card 3: Late Arrivals
         late_days = len([r for r in self.attendance_system.attendance_log 
-                        if r["Name"] == self.current_user and 
-                        self._is_late(r["Check-in"])])
-        self._create_stat_card(stats_frame, "Late Days", late_days, "#FF9800")
+                        if r["Name"] == self.current_user and self._is_late(r["Check-in"])])
+        self._create_metric_card(metrics_frame, "Late Arrivals", late_days, "#FF9800", 0, 2)
 
-        # --- Attendance Table ---
-        table_frame = tk.Frame(user_win)
-        table_frame.pack(fill='both', expand=True, padx=20, pady=10)
+        # ===== ATTENDANCE HISTORY =====
+        history_frame = tk.Frame(user_win)
+        history_frame.pack(fill='both', expand=True, padx=20, pady=10)
         
         # Treeview with scrollbar
         columns = ("Date", "Check-in", "Check-out", "Hours", "Status")
-        tree = ttk.Treeview(table_frame, columns=columns, show="headings", height=8)
+        tree = ttk.Treeview(history_frame, columns=columns, show="headings", height=10)
         
         for col in columns:
             tree.heading(col, text=col)
             tree.column(col, width=120, anchor='center')
         
-        # Insert data with status indicators
+        # Insert real data
         for record in sorted(
             [r for r in self.attendance_system.attendance_log 
             if r["Name"] == self.current_user],
@@ -635,35 +652,31 @@ class AttendanceUI:
                 status
             ))
         
-        scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=tree.yview)
+        scrollbar = ttk.Scrollbar(history_frame, orient="vertical", command=tree.yview)
         tree.configure(yscrollcommand=scrollbar.set)
         tree.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
-        # --- Export Button ---
-        ttk.Button(user_win, text="Export My Data", 
-                command=lambda: self.export_user_data(self.current_user),
-                style='Accent.TButton').pack(pady=20)
-
-    def _create_stat_card(self, parent, title, value, color):
-            """Helper to create metric cards"""
-            card = tk.Frame(parent, bg='white', bd=1, relief='groove')
-            card.pack(side='left', expand=True, padx=5)
-            
-            tk.Label(card, text=title, font=("Arial", 10), bg='white').pack(pady=(10,0))
-            tk.Label(card, text=value, font=("Arial", 18, 'bold'), bg='white', 
-                    fg=color).pack(pady=5)
+        # ===== ACTIONS =====
+        actions_frame = tk.Frame(user_win, bg='#f0f2f5')
+        actions_frame.pack(fill='x', pady=10)
         
-    def _get_status_icon(self, check_in, check_out):
-        """Return emoji status for table"""
-        if not check_in:
-            return "❌ Absent"
-        elif check_in and not check_out:
-            return "🟡 Working"
-        elif self._is_late(check_in):
-            return "⚠️ Late"
-        else:
-            return "✅ Present"
+        ttk.Button(actions_frame, 
+                text="Export My Attendance", 
+                command=lambda: self.export_user_data(self.current_user)).pack(side='left', padx=10)
+        
+        ttk.Button(actions_frame, 
+                text="Request Correction", 
+                command=self.request_correction).pack(side='left')
+
+    def _create_metric_card(self, parent, title, value, color, row, col):
+        """Helper to create metric cards"""
+        card = tk.Frame(parent, bg='white', bd=1, relief='groove')
+        card.grid(row=row, column=col, padx=5, pady=5, sticky='nsew')
+        
+        tk.Label(card, text=title, font=("Arial", 10), bg='white').pack(pady=(10,0))
+        tk.Label(card, text=value, font=("Arial", 18, 'bold'), bg='white', 
+                fg=color).pack(pady=5)
     
     def remove_user(self, user_list):
         """Remove selected user from the system"""
