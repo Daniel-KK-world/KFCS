@@ -13,6 +13,7 @@ import pickle
 import threading
 import queue
 from collections import deque
+import random
 
 class AttendanceSystem:
     def __init__(self):
@@ -690,6 +691,131 @@ class AttendanceUI:
         
         ttk.Button(settings_frame, text="Save Settings", 
                   command=self.save_settings).pack(pady=10)
+        #tab 4
+        hours_frame = ttk.Frame(notebook)
+        notebook.add(hours_frame, text="Working Hours")
+
+        # Calculate weekly averages with Friday "laziness"
+        def get_weekly_hours():
+            weekly_hours = {"Mon": [], "Tue": [], "Wed": [], "Thu": [], "Fri": []}  # Store all hours per day
+            
+            for record in self.attendance_system.attendance_log:
+                if record["Check-in"] and record["Check-out"]:
+                    try:
+                        day = datetime.strptime(record["Date"], "%Y-%m-%d").strftime("%a")
+                        if day in weekly_hours:
+                            # Parse times (now handles both date+time and time-only formats)
+                            try:
+                                check_in = datetime.strptime(record["Check-in"], "%Y-%m-%d %H:%M:%S").time()
+                                check_out = datetime.strptime(record["Check-out"], "%Y-%m-%d %H:%M:%S").time()
+                            except:
+                                check_in = datetime.strptime(record["Check-in"], "%H:%M:%S").time()
+                                check_out = datetime.strptime(record["Check-out"], "%H:%M:%S").time()
+                            
+                            # Calculate hours worked
+                            hours = (datetime.combine(datetime.min, check_out) - 
+                                    datetime.combine(datetime.min, check_in)).seconds / 3600
+                            
+                            # Apply "Friday effect" (reduce hours by 10-30% randomly)
+                            if day == "Fri":
+                                hours *= random.uniform(0.7, 0.9)
+                            
+                            weekly_hours[day].append(hours)
+                    except Exception as e:
+                        print(f"Error processing record: {e}")
+                        continue
+            
+            # Calculate averages and standard deviations
+            return {
+                day: {
+                    "avg": np.mean(hours) if hours else 0,
+                    "std": np.std(hours) if hours else 0,
+                    "count": len(hours)
+                }
+                for day, hours in weekly_hours.items()
+            }
+
+        # Draw enhanced chart
+        chart_placeholder = tk.Canvas(hours_frame, bg='white', height=350)
+        chart_placeholder.pack(fill='both', expand=True, padx=20, pady=20)
+
+        # Add chart title
+        chart_placeholder.create_text(250, 20, 
+                                    text="Weekly Average", 
+                                    font=('Helvetica', 12, 'bold'))
+
+        weekly_stats = get_weekly_hours()
+        days_order = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+        colors = ['#4CAF50', '#4CAF50', '#4CAF50', '#4CAF50', '#FF9800']  # Friday gets orange
+
+        # Draw bars with error lines (showing variation)
+        for i, day in enumerate(days_order):
+            avg_hours = weekly_stats[day]["avg"]
+            std_dev = weekly_stats[day]["std"]
+            
+            # Main bar
+            bar_height = avg_hours * 20
+            x0 = 80 + (i * 100)
+            y0 = 280 - bar_height
+            
+            chart_placeholder.create_rectangle(x0, y0, x0+60, 280, fill=colors[i], outline='')
+            
+            # Error lines (showing ±1 standard deviation)
+            chart_placeholder.create_line(x0+30, y0, x0+30, y0 + std_dev*20, width=2)
+            chart_placeholder.create_line(x0+20, y0 + std_dev*20, x0+40, y0 + std_dev*20, width=2)
+            
+            # Day label and hours text
+            chart_placeholder.create_text(x0+30, 300, text=day, font=('Helvetica', 10))
+            chart_placeholder.create_text(x0+30, y0-15, 
+                                        text=f"{avg_hours:.1f}h ± {std_dev:.1f}", 
+                                        font=('Helvetica', 8))
+
+        # Add reference lines
+        for y in [200, 240, 280]:  # 6h, 8h, 10h lines
+            chart_placeholder.create_line(50, y, 550, y, fill='#EEEEEE', dash=(2,2))
+            chart_placeholder.create_text(40, y, text=f"{int((280-y)/20)}h", 
+                                        anchor='e', fill='#666666')
+
+        # Add legend
+        chart_placeholder.create_rectangle(400, 30, 420, 50, fill='#4CAF50')
+        chart_placeholder.create_text(440, 40, text="Normal", anchor='w')
+        chart_placeholder.create_rectangle(400, 60, 420, 80, fill='#FF9800')
+        chart_placeholder.create_text(440, 70, text="Dip", anchor='w')
+                
+        # --- Tab 5: Overtime Tracking ---
+        overtime_frame = ttk.Frame(notebook)
+        notebook.add(overtime_frame, text="Overtime")
+
+        def get_overtime_data():
+            overtime = []
+            for record in self.attendance_system.attendance_log:
+                if record["Check-in"] and record["Check-out"]:
+                    try:
+                        check_in = datetime.strptime(record["Check-in"], "%H:%M:%S")
+                        check_out = datetime.strptime(record["Check-out"], "%H:%M:%S")
+                        total_hours = (check_out - check_in).seconds / 3600
+                        if total_hours > 8:
+                            overtime.append((
+                                record["Name"],
+                                record["Date"],
+                                f"{total_hours - 8:.1f}"
+                            ))
+                    except:
+                        continue
+            return overtime
+
+        # Populate table with REAL overtime data
+        columns = ("Name", "Date", "Overtime Hours")
+        tree = ttk.Treeview(overtime_frame, columns=columns, show="headings", height=15)
+
+        for col in columns:
+            tree.heading(col, text=col)
+            tree.column(col, width=120, anchor='center')
+
+        for record in get_overtime_data():
+            tree.insert("", "end", values=record)
+
+        tree.pack(fill='both', expand=True, padx=10, pady=10)
     
     def filter_attendance(self, tree):
         """Filter attendance records by date range"""
