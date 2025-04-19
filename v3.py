@@ -20,7 +20,7 @@ class AttendanceSystem:
         self.known_face_encodings = []
         self.known_face_names = []
         self.attendance_log = []
-        self.anti_spoofing_threshold = 0.3  # Threshold for liveness detection
+        self.anti_spoofing_threshold = 0.3  # Threshold to indicate that a user is real. 
         self.min_confidence = 0.6  # Minimum confidence for recognition
         self.load_data()
         
@@ -125,7 +125,7 @@ class AttendanceSystem:
         # Calculate confidence (inverted and normalized)
         confidence = 1 - min(best_distance / 0.6, 1.0)  # 0.6 is the threshold
         
-        # Only return a match if it meets confidence threshold
+        # Only return a match if it meets confidence threshold 
         if confidence >= self.min_confidence:
             return self.known_face_names[best_match_idx], confidence
         else:
@@ -146,7 +146,7 @@ class AttendanceSystem:
         # Calculate variance of Laplacian (focus measure)
         fm = cv2.Laplacian(face_region, cv2.CV_64F).var()
         
-        # If focus measure is too low, might be a photo
+        # If focus measure is too low, might be a static image. 
         return fm > self.anti_spoofing_threshold
     
     def record_attendance(self, name, action):
