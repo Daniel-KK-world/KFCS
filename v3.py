@@ -14,6 +14,9 @@ import threading
 import queue
 from collections import deque
 import random
+import concurrent.futures
+import time
+
 
 class AttendanceSystem:
     def __init__(self):
@@ -22,8 +25,11 @@ class AttendanceSystem:
         self.attendance_log = []
         self.anti_spoofing_threshold = 0.3  # Threshold to indicate that a user is real. 
         self.min_confidence = 0.6  # Minimum confidence for recognition
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+        self.liveness_cache = {}  # {name: timestamp}
+        self.liveness_timeout = 5  # seconds between liveness checks per person
         self.load_data()
-        
+
     def load_data(self):
         """Load all required data files"""
         try:
@@ -54,7 +60,7 @@ class AttendanceSystem:
             self.known_face_names = []
             self.attendance_log = []
             self.save_data()
-    
+
     def save_data(self):
         """Save all data files"""
         try:
@@ -62,7 +68,7 @@ class AttendanceSystem:
             self.save_attendance_data()
         except Exception as e:
             print(f"Error saving data: {e}")
-    
+
     def save_known_faces(self):
         """Save face encodings to file"""
         try:
@@ -74,7 +80,7 @@ class AttendanceSystem:
                 pickle.dump(data, f)
         except Exception as e:
             print(f"Error saving face data: {e}")
-    
+
     def save_attendance_data(self):
         """Save attendance records to file"""
         try:
@@ -86,7 +92,7 @@ class AttendanceSystem:
                     writer.writerows(self.attendance_log)
         except Exception as e:
             print(f"Error saving attendance data: {e}")
-    
+
     def register_new_user(self, name, face_encodings):
         """Register a new user with multiple face samples"""
         if not name or not face_encodings:
@@ -99,7 +105,7 @@ class AttendanceSystem:
         self.known_face_encodings.append(avg_encoding)
         self.save_known_faces()
         return True
-    
+
     def recognize_face(self, face_encoding):
         """
         Recognize a face with improved matching logic
@@ -109,8 +115,8 @@ class AttendanceSystem:
             name (str): Best match or "Unknown"
             confidence (float): Match confidence (0-1)
         """
-        if not self.known_face_encodings:
-            return "Unknown", 0.0
+        if not self.known_face_encodings: 
+            return "Unknown", 0
             
         # Calculate distances to all known faces
         distances = face_recognition.face_distance(
@@ -123,14 +129,14 @@ class AttendanceSystem:
         best_distance = distances[best_match_idx]
         
         # Calculate confidence (inverted and normalized)
-        confidence = 1 - min(best_distance / 0.6, 1.0)  # 0.6 is the threshold
+        confidence = 1 - min(best_distance / 0.9, 1.0)  # 0.6 is the threshold
         
         # Only return a match if it meets confidence threshold 
         if confidence >= self.min_confidence:
             return self.known_face_names[best_match_idx], confidence
         else:
             return "Unknown", confidence
-    
+
     def detect_liveness(self, frame, face_location):
         """
         Simple liveness detection to prevent spoofing
@@ -143,12 +149,15 @@ class AttendanceSystem:
         top, right, bottom, left = face_location
         face_region = gray[top:bottom, left:right]
         
+        # Reducing resolution for processing
+        small_face = cv2.resize(face_region, (100, 100))
+        
         # Calculate variance of Laplacian (focus measure)
-        fm = cv2.Laplacian(face_region, cv2.CV_64F).var()
+        fm = cv2.Laplacian(small_face, cv2.CV_64F).var()
         
         # If focus measure is too low, might be a static image. 
         return fm > self.anti_spoofing_threshold
-    
+
     def record_attendance(self, name, action):
         """Record check-in/check-out with validation"""
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -200,68 +209,92 @@ class FaceProcessor:
         self.result_queue = queue.Queue(maxsize=1)
         self.running = False
         self.process_thread = None
-        
+
     def start(self):
         """Start the processing thread"""
         self.running = True
         self.process_thread = threading.Thread(target=self._process_frames, daemon=True)
         self.process_thread.start()
-        
+
     def stop(self):
         """Stop the processing thread"""
         self.running = False
         if self.process_thread:
             self.process_thread.join()
-            
+
     def _process_frames(self):
         """Process frames from the queue"""
         while self.running:
             try:
                 frame = self.frame_queue.get(timeout=0.1)
-                
+
                 # Resize frame for faster processing
                 small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
                 rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
-                
+
                 # Find all face locations and encodings
                 face_locations = face_recognition.face_locations(rgb_small_frame)
                 face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
-                
+
                 # Prepare results
-                results = []
+                face_data = []
+                futures = []  # To store future tasks for liveness checks
                 for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
-                    # Scale back up face locations
                     top *= 4
                     right *= 4
                     bottom *= 4
                     left *= 4
-                    
+
                     # Recognize face
                     name, confidence = self.attendance_system.recognize_face(face_encoding)
-                    
-                    # Check liveness
-                    is_live = self.attendance_system.detect_liveness(frame, (top, right, bottom, left))
-                    
+
+                    # Cache and liveness check logic
+                    current_time = time.time()
+                    last_check = self.attendance_system.liveness_cache.get(name, 0)
+
+                    # Check if it's time to recheck liveness
+                    if name != "Unknown" and (current_time - last_check) < self.attendance_system.liveness_timeout:
+                        futures.append(None)  # Skip this liveness check (use cached result)
+                    else:
+                        future = self.attendance_system.executor.submit(self.attendance_system.detect_liveness, frame.copy(), (top, right, bottom, left))
+                        futures.append(future)
+                        if name != "Unknown":
+                            self.attendance_system.liveness_cache[name] = current_time  # Update liveness check time
+
+                    face_data.append(((top, right, bottom, left), name, confidence))
+
+                results = []
+                for future, ((top, right, bottom, left), name, confidence) in zip(futures, face_data):
+                    if future is None:
+                        is_live = True  # Use cached result (already considered live)
+                    else:
+                        try:
+                            is_live = future.result()
+                        except Exception as e:
+                            print(f"Liveness check failed: {e}")
+                            is_live = False  # Fallback if thread fails
+
                     results.append({
                         "location": (top, right, bottom, left),
                         "name": name,
                         "confidence": confidence,
                         "is_live": is_live
                     })
-                
-                # Put results in queue (replace if not empty)
+
+                # Replace the result queue
                 if not self.result_queue.empty():
                     try:
-                        self.result_queue.get_nowait()
+                        self.result_queue.get_nowait()  # Clear the queue if not empty
                     except queue.Empty:
                         pass
                 self.result_queue.put(results)
-                
+
             except queue.Empty:
                 continue
             except Exception as e:
                 print(f"Error processing frame: {e}")
                 continue
+
 
 
 class AttendanceUI:
@@ -423,7 +456,7 @@ class AttendanceUI:
         self.fps_label.config(text=f"FPS: {avg_fps:.1f}")
         
         # Repeat every 40ms (25 FPS target)
-        self.webcam_label.after(40, self.process_webcam)
+        self.webcam_label.after(100, self.process_webcam)
     
     def create_control_panel(self):
         """Create the right-side control panel"""
