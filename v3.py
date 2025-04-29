@@ -16,6 +16,7 @@ from collections import deque
 import random
 import concurrent.futures
 import time
+import hashlib 
 
 
 class AttendanceSystem:
@@ -28,7 +29,24 @@ class AttendanceSystem:
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
         self.liveness_cache = {}  # {name: timestamp}
         self.liveness_timeout = 5  # seconds between liveness checks per person
+        self.admin_password = self.hash_password("admin123")  # NEW: Default admin password
         self.load_data()
+        
+    # NEW PASSWORD METHODS ============================================
+    def hash_password(self, password):
+        """Hash password using SHA-256"""
+        return hashlib.sha256(password.encode()).hexdigest()
+
+    def verify_admin_password(self, password):
+        """Verify admin password"""
+        return self.hash_password(password) == self.admin_password
+
+    def change_admin_password(self, old_password, new_password):
+        """Change admin password after verification"""
+        if self.verify_admin_password(old_password):
+            self.admin_password = self.hash_password(new_password)
+            return True
+        return False
 
     def load_data(self):
         """Load all required data files"""
@@ -533,7 +551,7 @@ class AttendanceUI:
         self.admin_btn = tk.Label(self.main_frame, text="⚙", font=("Arial", 28), 
                                  bg='white', fg='#999', cursor="hand2")
         self.admin_btn.place(x=1120, y=572)
-        self.admin_btn.bind("<Button-1>", lambda e: self.show_admin_panel())
+        self.admin_btn.bind("<Button-1>", lambda e: self.request_password())
     
     def create_user_button(self):
         """Create user profile button"""
@@ -632,6 +650,21 @@ class AttendanceUI:
             if success:
                 messagebox.showinfo("Success", f"User {name} registered successfully!")
                 self.status.config(text=f"System Ready | {len(self.attendance_system.known_face_names)} users registered | Last sync: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                
+    def request_password(self):
+        """Request admin password and verify"""
+        password = simpledialog.askstring("Admin Authentication", 
+                                        "Enter Admin Password:", 
+                                        show='*',
+                                        parent=self.root)
+        if password is None:  # User cancelled
+            return
+            
+        if self.attendance_system.verify_admin_password(password):
+            self.show_admin_panel()
+        else:
+            messagebox.showerror("Access Denied", "Incorrect admin password!")
+
     
     def show_admin_panel(self):
         """Show the admin panel with management features"""
@@ -640,6 +673,31 @@ class AttendanceUI:
         admin_win.title("Admin Dashboard")
         admin_win.configure(bg='#f5f5f5')
         
+        # Add password change option
+        def change_password():
+            old = simpledialog.askstring("Change Password", "Enter current password:", show='*')
+            if not old:
+                return
+                
+            new_pass = simpledialog.askstring("Change Password", "Enter new password:", show='*')
+            if not new_pass:
+                return
+                
+            confirm = simpledialog.askstring("Change Password", "Confirm new password:", show='*')
+            
+            if new_pass != confirm:
+                messagebox.showerror("Error", "New passwords don't match!")
+                return
+                
+            if self.attendance_system.change_admin_password(old, new_pass):
+                messagebox.showinfo("Success", "Password changed successfully!")
+            else:
+                messagebox.showerror("Error", "Incorrect current password!")
+        
+        # Password change button
+        ttk.Button(admin_win, text="Change Admin Password", 
+                command=change_password).pack(pady=10)
+    
         # Notebook (tabbed interface)
         notebook = ttk.Notebook(admin_win)
         notebook.pack(fill='both', expand=True, padx=10, pady=10)
@@ -818,6 +876,15 @@ class AttendanceUI:
         # --- Tab 5: Overtime Tracking ---
         overtime_frame = ttk.Frame(notebook)
         notebook.add(overtime_frame, text="Overtime")
+        
+       
+        def request_password():
+            entered = simpledialog.askstring("Admin Login", "Enter Admin Password:", show='*')
+            ADMIN_PASSWORD = 'admin123'
+            if entered == ADMIN_PASSWORD:
+                self.show_admin_pannel()
+            else:
+                messagebox.showerror("Access Denied", "Incorrect password!") 
 
         def get_overtime_data():
             overtime = []
