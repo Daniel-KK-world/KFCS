@@ -17,6 +17,7 @@ import random
 import concurrent.futures
 import time
 import hashlib 
+import ctypes
 
 
 class AttendanceSystem:
@@ -28,7 +29,7 @@ class AttendanceSystem:
         self.min_confidence = 0.6  # Minimum confidence for recognition
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
         self.liveness_cache = {}  # {name: timestamp}
-        self.liveness_timeout = 5  # seconds between liveness checks per person
+        self.liveness_timeout = 10000  # seconds between liveness checks per person
         self.admin_password = self.hash_password("admin123")  # NEW: Default admin password
         self.load_data()
         
@@ -140,7 +141,7 @@ class AttendanceSystem:
         best_distance = distances[best_match_idx]
         
         # Fast confidence calculation
-        confidence = max(0, 1 - (best_distance / 0.6))  # More aggressive confidence
+        confidence = max(0, 1 - (best_distance / 0.9))  # More aggressive confidence
         
         # Early return for obvious mismatches
         if best_distance > 0.6:  # Higher threshold for quick rejection
@@ -309,7 +310,8 @@ class AttendanceUI:
         self.root = tk.Tk()
         self.root.geometry("1280x720+100+50")
         self.root.title("KFCS Attendance Pro")
-        self.root.configure(bg='#f5f5f5')
+        self.root.configure(bg='#333333')
+        self.root.tk.call('wm', 'iconphoto', self.root._w, tk.PhotoImage(width=1, height=1))
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
         
         # Initialize systems
@@ -328,6 +330,7 @@ class AttendanceUI:
         
         # Create UI components
         self.create_main_container()
+        self.kill_feather_icon()
         self.create_webcam_section()
         self.create_control_panel()
         self.create_status_bar()
@@ -346,6 +349,14 @@ class AttendanceUI:
         self.process_webcam()
         
         self.root.mainloop()
+    
+    def kill_feather_icon(self):
+        try:
+            # Replace with a transparent icon (or your custom .ico)
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("KFCS.Attendance.Pro")  # Unique ID
+            self.root.iconbitmap(default="company_logo\steve_jobs_avatar_icon_263195.png")  # 1x1 transparent .ico file
+        except Exception as e:
+            print("Icon override failed (non-Windows?):", e)
     
     def on_close(self):
         """Cleanup on window close"""
