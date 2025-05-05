@@ -1,0 +1,485 @@
+[
+    {
+        "label": "tkinter",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "tkinter",
+        "description": "tkinter",
+        "detail": "tkinter",
+        "documentation": {}
+    },
+    {
+        "label": "ttk",
+        "importPath": "tkinter",
+        "description": "tkinter",
+        "isExtraImport": true,
+        "detail": "tkinter",
+        "documentation": {}
+    },
+    {
+        "label": "simpledialog",
+        "importPath": "tkinter",
+        "description": "tkinter",
+        "isExtraImport": true,
+        "detail": "tkinter",
+        "documentation": {}
+    },
+    {
+        "label": "messagebox",
+        "importPath": "tkinter",
+        "description": "tkinter",
+        "isExtraImport": true,
+        "detail": "tkinter",
+        "documentation": {}
+    },
+    {
+        "label": "ttk",
+        "importPath": "tkinter",
+        "description": "tkinter",
+        "isExtraImport": true,
+        "detail": "tkinter",
+        "documentation": {}
+    },
+    {
+        "label": "simpledialog",
+        "importPath": "tkinter",
+        "description": "tkinter",
+        "isExtraImport": true,
+        "detail": "tkinter",
+        "documentation": {}
+    },
+    {
+        "label": "messagebox",
+        "importPath": "tkinter",
+        "description": "tkinter",
+        "isExtraImport": true,
+        "detail": "tkinter",
+        "documentation": {}
+    },
+    {
+        "label": "ttk",
+        "importPath": "tkinter",
+        "description": "tkinter",
+        "isExtraImport": true,
+        "detail": "tkinter",
+        "documentation": {}
+    },
+    {
+        "label": "simpledialog",
+        "importPath": "tkinter",
+        "description": "tkinter",
+        "isExtraImport": true,
+        "detail": "tkinter",
+        "documentation": {}
+    },
+    {
+        "label": "messagebox",
+        "importPath": "tkinter",
+        "description": "tkinter",
+        "isExtraImport": true,
+        "detail": "tkinter",
+        "documentation": {}
+    },
+    {
+        "label": "ttk",
+        "importPath": "tkinter",
+        "description": "tkinter",
+        "isExtraImport": true,
+        "detail": "tkinter",
+        "documentation": {}
+    },
+    {
+        "label": "simpledialog",
+        "importPath": "tkinter",
+        "description": "tkinter",
+        "isExtraImport": true,
+        "detail": "tkinter",
+        "documentation": {}
+    },
+    {
+        "label": "messagebox",
+        "importPath": "tkinter",
+        "description": "tkinter",
+        "isExtraImport": true,
+        "detail": "tkinter",
+        "documentation": {}
+    },
+    {
+        "label": "tkinter.font",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "tkinter.font",
+        "description": "tkinter.font",
+        "detail": "tkinter.font",
+        "documentation": {}
+    },
+    {
+        "label": "Image",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "ImageTk",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "ImageDraw",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "Image",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "ImageTk",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "Image",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "ImageTk",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "ImageDraw",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "Image",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "ImageTk",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "ImageDraw",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "cv2",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "cv2",
+        "description": "cv2",
+        "detail": "cv2",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "numpy",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "numpy",
+        "description": "numpy",
+        "detail": "numpy",
+        "documentation": {}
+    },
+    {
+        "label": "pandas",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "pandas",
+        "description": "pandas",
+        "detail": "pandas",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "csv",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "csv",
+        "description": "csv",
+        "detail": "csv",
+        "documentation": {}
+    },
+    {
+        "label": "face_recognition",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "face_recognition",
+        "description": "face_recognition",
+        "detail": "face_recognition",
+        "documentation": {}
+    },
+    {
+        "label": "pickle",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "pickle",
+        "description": "pickle",
+        "detail": "pickle",
+        "documentation": {}
+    },
+    {
+        "label": "threading",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "threading",
+        "description": "threading",
+        "detail": "threading",
+        "documentation": {}
+    },
+    {
+        "label": "queue",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "queue",
+        "description": "queue",
+        "detail": "queue",
+        "documentation": {}
+    },
+    {
+        "label": "deque",
+        "importPath": "collections",
+        "description": "collections",
+        "isExtraImport": true,
+        "detail": "collections",
+        "documentation": {}
+    },
+    {
+        "label": "deque",
+        "importPath": "collections",
+        "description": "collections",
+        "isExtraImport": true,
+        "detail": "collections",
+        "documentation": {}
+    },
+    {
+        "label": "random",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "random",
+        "description": "random",
+        "detail": "random",
+        "documentation": {}
+    },
+    {
+        "label": "concurrent.futures",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "concurrent.futures",
+        "description": "concurrent.futures",
+        "detail": "concurrent.futures",
+        "documentation": {}
+    },
+    {
+        "label": "time",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "time",
+        "description": "time",
+        "detail": "time",
+        "documentation": {}
+    },
+    {
+        "label": "hashlib",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "hashlib",
+        "description": "hashlib",
+        "detail": "hashlib",
+        "documentation": {}
+    },
+    {
+        "label": "multiprocessing",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "multiprocessing",
+        "description": "multiprocessing",
+        "detail": "multiprocessing",
+        "documentation": {}
+    },
+    {
+        "label": "ctypes",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "ctypes",
+        "description": "ctypes",
+        "detail": "ctypes",
+        "documentation": {}
+    },
+    {
+        "label": "AttendanceSystem",
+        "kind": 6,
+        "importPath": "functionality_test",
+        "description": "functionality_test",
+        "peekOfCode": "class AttendanceSystem:\n    def __init__(self):\n        self.known_face_encodings = []\n        self.known_face_names = []\n        self.attendance_log = []\n        self.load_known_faces()\n        self.load_attendance_data()\n    def load_known_faces(self):\n        try:\n            if os.path.exists(\"facial_recognition.dat\"):",
+        "detail": "functionality_test",
+        "documentation": {}
+    },
+    {
+        "label": "AttendanceUI",
+        "kind": 6,
+        "importPath": "functionality_test",
+        "description": "functionality_test",
+        "peekOfCode": "class AttendanceUI:\n    def __init__(self):\n        self.root = tk.Tk()\n        self.root.geometry(\"1280x720+100+50\")\n        self.root.title(\"KFCS Attendance Pro\")\n        self.root.configure(bg='#f5f5f5')\n        self.root.iconbitmap(default='')  \n        # Initialize attendance system\n        self.attendance_system = AttendanceSystem()\n        # Custom fonts",
+        "detail": "functionality_test",
+        "documentation": {}
+    },
+    {
+        "label": "AttendanceUI",
+        "kind": 6,
+        "importPath": "UI_test",
+        "description": "UI_test",
+        "peekOfCode": "class AttendanceUI:\n    def __init__(self):\n        self.root = tk.Tk()\n        self.root.geometry(\"1280x720+100+50\")\n        self.root.title(\"KFCS Attendance Pro\")\n        self.root.configure(bg='#f5f5f5')\n        # Custom fonts\n        self.title_font = tkFont.Font(family=\"Segoe UI\", size=24, weight=\"bold\")\n        self.button_font = tkFont.Font(family=\"Segoe UI\", size=12)\n        self.small_font = tkFont.Font(family=\"Segoe UI\", size=10)",
+        "detail": "UI_test",
+        "documentation": {}
+    },
+    {
+        "label": "AttendanceSystem",
+        "kind": 6,
+        "importPath": "v2",
+        "description": "v2",
+        "peekOfCode": "class AttendanceSystem:\n    def __init__(self):\n        self.known_face_encodings = []\n        self.known_face_names = []\n        self.attendance_log = []\n        self.anti_spoofing_threshold = 0.3\n        self.min_confidence = 0.6\n        self.liveness_cache = {}\n        self.liveness_timeout = 100\n        self.admin_password = self.hash_password(\"admin123\")",
+        "detail": "v2",
+        "documentation": {}
+    },
+    {
+        "label": "FaceProcessingWorker",
+        "kind": 6,
+        "importPath": "v2",
+        "description": "v2",
+        "peekOfCode": "class FaceProcessingWorker(mp.Process):\n    def __init__(self, input_queue, output_queue):\n        super().__init__()\n        self.input_queue = input_queue\n        self.output_queue = output_queue\n        self.daemon = True\n        self.downscale_factor = 0.3\n        self.frame_skip = 2\n    def run(self):\n        while True:",
+        "detail": "v2",
+        "documentation": {}
+    },
+    {
+        "label": "AttendanceUI",
+        "kind": 6,
+        "importPath": "v2",
+        "description": "v2",
+        "peekOfCode": "class AttendanceUI:\n    def __init__(self):\n        self.root = tk.Tk()\n        self.root.geometry(\"1280x720+100+50\")\n        self.root.title(\"KFCS Attendance Pro\")\n        self.root.configure(bg='#f5f5f5')\n        self.root.protocol(\"WM_DELETE_WINDOW\", self.on_close)\n        # Initialize systems\n        self.attendance_system = AttendanceSystem()\n        # Performance tracking",
+        "detail": "v2",
+        "documentation": {}
+    },
+    {
+        "label": "AttendanceUI",
+        "kind": 6,
+        "importPath": "v2",
+        "description": "v2",
+        "peekOfCode": "class AttendanceUI:\n    def __init__(self):\n        self.root = tk.Tk()\n        self.root.geometry(\"1280x720+100+50\")\n        self.root.title(\"KFCS Attendance Pro\")\n        self.root.configure(bg='#f5f5f5')\n        self.root.protocol(\"WM_DELETE_WINDOW\", self.on_close)\n        # Initialize systems\n        self.attendance_system = AttendanceSystem()\n        self.face_processor = FaceProcessor(self.attendance_system)",
+        "detail": "v2",
+        "documentation": {}
+    },
+    {
+        "label": "AttendanceSystem",
+        "kind": 6,
+        "importPath": "v3",
+        "description": "v3",
+        "peekOfCode": "class AttendanceSystem:\n    def __init__(self):\n        self.known_face_encodings = []\n        self.known_face_names = []\n        self.attendance_log = []\n        self.anti_spoofing_threshold = 0.3  # Threshold to indicate that a user is real. \n        self.min_confidence = 0.6  # Minimum confidence for recognition\n        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)\n        self.liveness_cache = {}  # {name: timestamp}\n        self.liveness_timeout = 10000  # seconds between liveness checks per person",
+        "detail": "v3",
+        "documentation": {}
+    },
+    {
+        "label": "FaceProcessor",
+        "kind": 6,
+        "importPath": "v3",
+        "description": "v3",
+        "peekOfCode": "class FaceProcessor:\n    \"\"\"Optimized but reliable face processing\"\"\"\n    def __init__(self, attendance_system):\n        self.attendance_system = attendance_system\n        self.frame_queue = queue.Queue(maxsize=1)\n        self.result_queue = queue.Queue(maxsize=1)\n        self.running = False\n        self.process_thread = None\n        self.last_locations = []\n        self.last_encodings = []",
+        "detail": "v3",
+        "documentation": {}
+    },
+    {
+        "label": "AttendanceUI",
+        "kind": 6,
+        "importPath": "v3",
+        "description": "v3",
+        "peekOfCode": "class AttendanceUI:\n    def __init__(self):\n        self.root = tk.Tk()\n        self.root.geometry(\"1280x720+100+50\")\n        self.root.title(\"KFCS Attendance Pro\")\n        self.root.configure(bg='#333333')\n        self.root.tk.call('wm', 'iconphoto', self.root._w, tk.PhotoImage(width=1, height=1))\n        self.root.protocol(\"WM_DELETE_WINDOW\", self.on_close)\n        # Initialize systems\n        self.attendance_system = AttendanceSystem()",
+        "detail": "v3",
+        "documentation": {}
+    }
+]

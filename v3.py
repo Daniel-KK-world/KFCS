@@ -228,7 +228,7 @@ class FaceProcessor:
         
         # Tune these for your hardware
         self.downscale_factor = 0.3  # 30% of original size
-        self.detection_every_n_frames = 2  # Process every other frame
+        self.detection_every_n_frames = 10  # Process every other frame
         self.frame_counter = 0
 
     def start(self):
